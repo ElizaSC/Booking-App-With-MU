@@ -3,7 +3,9 @@ package muserver;
 import io.muserver.Method;
 import io.muserver.MuServer;
 import io.muserver.MuServerBuilder;
+import jakarta.ws.rs.core.Response;
 import repository.BookingRepository;
+import util.DateUtil;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -32,22 +34,33 @@ public class MuServerBooking {
             .addHandler(Method.POST, BOOKING, (request, response, pathParams) -> {
             	JsonObject body = new Gson().fromJson(request.readBodyAsString(), JsonObject.class);            	
             	String customerName = body.get("customerName").getAsString();
+            	String customerLastName = body.get("customerLastName").getAsString();
             	LocalDateTime bookingInitDate = LocalDateTime.parse(body.get("bookingInitDate").getAsString());
             	int tableSize = body.get("tableSize").getAsInt();
             	
-            	BookingDTO booking = new BookingDTO(customerName, tableSize, bookingInitDate);
+            	BookingDTO booking = new BookingDTO(customerName, customerLastName, tableSize, bookingInitDate);
             	bookingRepository.insertBooking(booking);
             	response.write("Booking created for " + customerName);
             })
             .addHandler(Method.GET, BOOKINGS, (request, response, pathParams) -> {
             	String dateStr = request.query().get("bookingDate");
-            	LocalDate date = LocalDate.parse(dateStr);
+            	try {
+           
+            	LocalDate date = DateUtil.validateDate(dateStr);
+  
             	List<BookingDTO> bookings = bookingRepository.getBookingsByDate(date);
+            	
             	StringBuilder resp = new StringBuilder("Bookings on "+ dateStr + ": " + bookings.size() + "\n");
             	for (BookingDTO booking : bookings) {
             		resp.append(booking + "\n");
 				}
         		response.write(resp.toString());
+          
+            }catch(Exception e) {
+            	response.status(400);
+            	response.write("Error: " + e.getMessage());
+            	
+            }
             })
             .start();
         

@@ -26,19 +26,21 @@ public class BookingRepository {
 
 		String sql = "INSERT INTO Booking "
 				+ "(customerName, "
+				+ "customerLastName, "
 				+ "tableSize,"
 				+ "bookingInitDate,"
 				+ "bookingEndDate)"
-				+ "VALUES (?, ?, ?, ?)";
+				+ "VALUES (?, ?, ?, ?, ?)";
 
 		try {
 			Connection conn = db.getConnection();
 			PreparedStatement ps = conn.prepareStatement(sql);
 			
 			ps.setString(1, booking.getCustomerName());
-			ps.setInt(2, booking.getTableSize());
-			ps.setTimestamp(3, Timestamp.valueOf(booking.getBookingInitDate()));
-			ps.setTimestamp(4, Timestamp.valueOf(booking.getBookingInitDate().plusHours(2)));
+			ps.setString(2, booking.getCustomerLastName());
+			ps.setInt(3, booking.getTableSize());
+			ps.setTimestamp(4, Timestamp.valueOf(booking.getBookingInitDate()));
+			ps.setTimestamp(5, Timestamp.valueOf(booking.getBookingInitDate().plusHours(2)));
 
 			ps.executeUpdate();
 			ps.close();
@@ -67,10 +69,11 @@ public class BookingRepository {
 			while (rs.next()) {
 				int id = rs.getInt("id");
 				String customerName = rs.getString("customerName");
+				String customerLastName = rs.getString("customerLastName");
 				int tableSize = rs.getInt("tableSize");
 				LocalDateTime bookingInitDate = rs.getTimestamp("bookingInitDate").toLocalDateTime();
 				LocalDateTime bookingEndDate = rs.getTimestamp("bookingEndDate").toLocalDateTime();
-				bookings.add(new BookingDTO(id, customerName, tableSize, bookingInitDate, bookingEndDate));
+				bookings.add(new BookingDTO(id, customerName, customerLastName, tableSize, bookingInitDate, bookingEndDate));
 			}
 			
 			rs.close();
